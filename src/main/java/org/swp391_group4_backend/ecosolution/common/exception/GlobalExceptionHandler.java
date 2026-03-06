@@ -1,9 +1,14 @@
 package org.swp391_group4_backend.ecosolution.common.exception;
-import org.swp391_group4_backend.ecosolution.auth.exception.EmailAlreadyExistsException;
 
-import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.swp391_group4_backend.ecosolution.auth.exception.EmailAlreadyExistsException;
+import org.swp391_group4_backend.ecosolution.auth.exception.InvalidCredentialsException;
+import org.swp391_group4_backend.ecosolution.auth.exception.InvalidRoleAssignmentException;
+import org.swp391_group4_backend.ecosolution.auth.exception.UserNotFoundException;
+import org.swp391_group4_backend.ecosolution.auth.exception.UsernameAlreadyExistsException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,7 +40,32 @@ public class GlobalExceptionHandler {
 
     return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
+
+  @ExceptionHandler(UsernameAlreadyExistsException.class)
+  public ResponseEntity<ErrorResponseDto> handleExistedUsername(UsernameAlreadyExistsException ex) {
+    String errorMessage = String.format("Username %s already exists", ex.getUsername());
+    return new ResponseEntity<>(new ErrorResponseDto(errorMessage), HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(InvalidCredentialsException.class)
+  public ResponseEntity<ErrorResponseDto> handleInvalidCredentials(InvalidCredentialsException ex) {
+    return new ResponseEntity<>(new ErrorResponseDto(ex.getMessage()), HttpStatus.UNAUTHORIZED);
+  }
+
+  @ExceptionHandler(UserNotFoundException.class)
+  public ResponseEntity<ErrorResponseDto> handleUserNotFound(UserNotFoundException ex) {
+    String errorMessage = String.format("User %s not found", ex.getUserId());
+    return new ResponseEntity<>(new ErrorResponseDto(errorMessage), HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler(InvalidRoleAssignmentException.class)
+  public ResponseEntity<ErrorResponseDto> handleInvalidRoleAssignment(InvalidRoleAssignmentException ex) {
+    String errorMessage = String.format("Role %s cannot be assigned by this API", ex.getRole());
+    return new ResponseEntity<>(new ErrorResponseDto(errorMessage), HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ErrorResponseDto> handleAccessDenied(AccessDeniedException ex) {
+    return new ResponseEntity<>(new ErrorResponseDto("Access denied"), HttpStatus.FORBIDDEN);
+  }
 }
-
-
-
