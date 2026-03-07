@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Configuration
 @Slf4j
@@ -147,7 +146,6 @@ public class DataInitializer {
       for (int i = 0; i < collectors.size(); i++) {
         CollectorScore score = CollectorScore.builder()
             .collector(collectors.get(i))
-            .collectorId(collectors.get(i).getId())
             .responseRate(scoreData[i][0])
             .completionRate(scoreData[i][1])
             .complaintRate(scoreData[i][2])
@@ -155,7 +153,7 @@ public class DataInitializer {
             .updatedAt(LocalDateTime.now())
             .build();
 
-        collectorScoreRepository.save(score);
+        collectorScoreRepository.saveAndFlush(score);
         log.info("  ✓ Score created for {} - Reliability: {}", collectors.get(i).getName(), scoreData[i][3]);
       }
 
@@ -243,7 +241,6 @@ public class DataInitializer {
 
     // Create User entity
     User user = User.builder()
-        .id(UUID.randomUUID())
         .name(name)
         .email(email)
         .role(role)
@@ -251,21 +248,18 @@ public class DataInitializer {
         .createdAt(LocalDateTime.now())
         .build();
 
-    User savedUser = userRepository.save(user);
+    User savedUser = userRepository.saveAndFlush(user);
 
-    // Create UserAuth entity
+    // With @MapsId, user_id is derived from the linked User entity.
     UserAuth userAuth = UserAuth.builder()
-        .userId(savedUser.getId())
         .username(email)
         .passwordHash(passwordEncoder.encode(password))
         .user(savedUser)
         .createdAt(LocalDateTime.now())
         .build();
 
-    userAuthRepository.save(userAuth);
+    userAuthRepository.saveAndFlush(userAuth);
 
     return savedUser;
   }
 }
-
-
